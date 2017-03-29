@@ -1,0 +1,53 @@
+graph {
+	0 [label=translation_unit]
+		4 -- 5
+	5 [label=int]
+		3 -- 4
+	4 [label=type_specifier]
+		2 -- 3
+	3 [label=declaration_specifiers]
+		8 -- 9
+	9 [label=main]
+		7 -- 8
+	8 [label=direct_declarator]
+		7 -- 10
+	10 [label="("]
+		7 -- 11
+	11 [label=")"]
+		6 -- 7
+	7 [label=direct_declarator]
+		2 -- 6
+	6 [label=declarator]
+		12 -- 13
+	13 [label="{"]
+		17 -- 18
+	18 [label=int]
+		16 -- 17
+	17 [label=type_specifier]
+		15 -- 16
+	16 [label=declaration_specifiers]
+		22 -- 23
+	23 [label=b]
+		21 -- 22
+	22 [label=direct_declarator]
+		20 -- 21
+	21 [label=declarator]
+		19 -- 20
+	20 [label=init_declarator]
+		15 -- 19
+	19 [label=init_declarator_list]
+		15 -- 24
+	24 [label=";"]
+		14 -- 15
+	15 [label=declaration]
+		12 -- 14
+	14 [label=declaration_list]
+		12 -- 25
+	25 [label="}"]
+		2 -- 12
+	12 [label=compound_statement]
+		1 -- 2
+	2 [label=function_definition]
+		0 -- 1
+	1 [label=external_declaration]
+}
