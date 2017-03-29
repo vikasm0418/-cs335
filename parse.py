@@ -1,9 +1,12 @@
 import sys
 import lex
 import ply.yacc as yacc
-
+import createParseTree
+from createParseTree import *
 tokens = lex.tokens
+import graphviz as gz
 
+tokenVal = 1
 
 #translation_unit
 def p_translation_unit_1(t):
@@ -437,15 +440,14 @@ def p_initializer_1(t):
 
 
 def p_initializer_2(t):
-	'''initializer : LBRACE initializer_list RBRACE
-				   | LBRACE initializer_list COMMA RBRACE'''
-	if(len(t) == 4):
-		t[0] = ("initializer",t[1],t[2],t[3])
-	else : 
-		t[0] = ("initializer",t[1],t[2],t[3],t[4])    
+	'initializer : LBRACE initializer_list RBRACE'
+	t[0] = ("initializer",t[1],t[2],t[3])
+
+def p_initializer_3(t):
+	'initializer : LBRACE initializer_list COMMA RBRACE'
+	t[0] = ("initializer",t[1],t[2],t[3],t[4])    
 
 # initializer-list:
-
 
 def p_initializer_list_1(t):
 	'initializer_list : initializer'
@@ -998,25 +1000,26 @@ def p_postfix_expression_8(t):
 # primary-expression:
 
 
-def p_primary_expression(t):
+def p_primary_expression_1(t):
 	'''primary_expression :  ID
 						|  constant
-						|  SCONST
-						|  LPAREN expression RPAREN'''
-	if(len(t)==2):
-		t[0] = ("primary_expression",t[1])
-	else :
-		t[0] = ("primary_expression",t[1],t[2],t[3]) 
+						|  SCONST '''
+	t[0] = ("primary_expression",t[1])
+
+def p_primary_expression_2(t):
+	'primary_expression : LPAREN expression RPAREN'
+	t[0] = ("primary_expression",t[1],t[2],t[3]) 
 # argument-expression-list:
 
 
-def p_argument_expression_list(t):
-	'''argument_expression_list :  assignment_expression
-							  |  argument_expression_list COMMA assignment_expression'''
-	if(len(t)== 3):
-		t[0] = ("argument_expression_list",t[1])
-	else : 
-		t[0] = ("argument_expression_list",t[1],t[2],t[3])    
+def p_argument_expression_list_1(t):
+	'argument_expression_list :  assignment_expression'
+	t[0] = ("argument_expression_list",t[1])					    
+		  
+
+def p_argument_expression_list_2(t):
+	'argument_expression_list : argument_expression_list COMMA assignment_expression'
+	t[0] = ("argument_expression_list",t[1],t[2],t[3]) 
 # constant:
 
 
@@ -1029,11 +1032,41 @@ def p_constant(t):
 
 def p_empty(t):
 	'empty : '
-	t[0] = ("empty",t[1])
+	t[0] = ("empty")
 
 
 def p_error(t):
 	print("syntax error in input")
+
+def calc_tree(g,tk,parentToken):
+	global tokenVal
+	if type(tk) is tuple:
+		if len(tk) > 1:
+			for i in range(1,len(tk)):
+				childToken = tokenVal
+				tokenVal = tokenVal + 1
+				if type(tk[i]) is tuple:
+					calc_tree(g,tk[i],childToken)
+					g.edge(str(parentToken),str(childToken))
+					g.node(str(childToken),str(tk[i][0]))		
+				else:
+					g.edge(str(parentToken),str(childToken))
+					g.node(str(childToken),str(tk[i]))
+		
+	else:	
+		g.edge(str(parentToken),str(tokenVal))
+		g.node(str(tokenVal),str(tk))
+		tokenVal = tokenVal + 1
+		
+	pass
+
+def create_tree(result):
+	g = gz.Graph(format='svg')
+	g.node(str(0),str(result[0]))
+	calc_tree(g,result,0)
+	filename = g.render(filename='parse_tree')
+	pass
+
 
 import profile
 # Build the grammar
@@ -1041,11 +1074,66 @@ import profile
 parser = yacc.yacc()
 
 inp = '''
-	int main() {
-		int a;
-	}
+
+void merge(int arr[], int l, int m, int r)
+{
+    int i, j, k;
+    int n1 = m - l + 1;
+    int n2 =  r - m;
+
+    for(i = 0; i < n1; i++)
+        L[i] = arr[l + i];
+    for(j = 0; j < n2; j++)
+        R[j] = arr[m + 1+ j];
+
+    i = 0;
+    j = 0;
+    k = l;
+    while (i < n1 && j < n2)
+    {
+    count++;
+        if (L[i] <= R[j])
+        {
+            arr[k] = L[i];
+            i++;
+        }
+        else
+        {
+            arr[k] = R[j];
+            j++;
+        }
+        k++;
+    }
+
+   while (i < n1)
+    {
+        arr[k] = L[i];
+        i++;
+        k++;
+    }
+   while (j < n2)
+    {
+        arr[k] = R[j];
+        j++;
+        k++;
+    }
+}
+
+void mergeSort(int arr[], int l, int r)
+{
+    if (l < r)
+    {
+        int m = l+(r-l)/2;
+        mergeSort(arr, l, m);
+        mergeSort(arr, m+1, r);
+        merge(arr, l, m, r);
+    }
+}
+
+
 '''
 out = yacc.parse(inp)
 print out
+create_tree(out)
 
 
