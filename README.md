@@ -1,2 +1,1 @@
-# -cs335
-compiler project
+Bulit a lexer and parser using ply
